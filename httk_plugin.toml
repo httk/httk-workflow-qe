@@ -1,0 +1,4 @@
+[plugin]
+name = "httk-workflow-qe"
+description = "Example Quantum ESPRESSO workflow packages (pw.x SCF)"
+workflows = ["workflows/qe-scf"]
