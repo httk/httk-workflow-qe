@@ -1,13 +1,15 @@
 """Parse the text output of Quantum ESPRESSO's ``pw.x``.
 
-Pure stdlib parsing: nothing here runs a program or imports *httk* code, so a
-result can be read anywhere the output file is.
+Nothing here runs a program, so a result can be read anywhere the output file
+is; compressed outputs are read through :func:`httk.core.datastream.compression.open_compressed`.
 """
 
 import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
+
+from httk.core.datastream.compression import open_compressed
 
 __all__ = ["RY_TO_EV", "PwResult", "parse_pw_output"]
 
@@ -63,7 +65,12 @@ def parse_pw_output(path: str | os.PathLike[str]) -> PwResult:
     """
 
     output = Path(path)
-    return _parse(output.read_text(encoding="utf-8", errors="replace"), _read(output.parent / "CRASH"))
+    return _parse(_text(output), _read(output.parent / "CRASH"))
+
+
+def _text(path: Path) -> str:
+    with path.open("rb") as raw, open_compressed(raw, compression="extension", name=path.name) as stream:
+        return stream.read().decode("utf-8", errors="replace")
 
 
 def _read(path: Path) -> str:

@@ -111,7 +111,7 @@ httk workspace settings set --key qe.command --value 'mpirun -np 4 pw.x' WORKSPA
 httk job new --workflow qe.scf --input structure=POSCAR --file Si.upf=Si.upf \
     --parameter 'pseudopotentials={"Si": "Si.upf"}'
 httk workflow run
-httk workflow collect --into results.sqlite
+httk collect --into results.sqlite
 ```
 
 Its parameters are `pseudopotentials` (species name to file name), `ecutwfc`
@@ -136,3 +136,16 @@ from httk.codes.qe.collect import read_total_energy
 def collect(record):
     return {"total_energy": read_total_energy(record.result_file("pw.out"))}
 ```
+
+### Recognized calculations
+
+The `qe.calculation.pw` collector lets `httk.workflow.collect_tree(root)` (and
+`httk collect DIR --into db.sqlite`) collect finished, free-standing `pw.x`
+runs without a workspace. A directory is recognized when it holds exactly one
+`*.out` whose first 100 lines carry the `Program PWSCF` banner, found by
+{py:func}`~httk.codes.qe.collect.find_outputs`, and the input `<stem>.in` beside
+it (compressed or not). A `slurm-*.out` log is ignored. Several `pw.x` outputs
+in one directory, or a missing input, are reported as unclaimed; an unconverged
+run is claimed and then reported as a degraded item. The claim is identified by
+the content of the input file, so moving the directory keeps its identity. The
+collected role is `total_energy`.
