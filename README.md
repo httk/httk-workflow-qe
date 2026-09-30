@@ -12,9 +12,9 @@
 [*httk-workflow*](https://github.com/httk/httk-workflow), the workflow engine of
 [*httk₂*](https://github.com/httk/httk2). It provides `httk.codes.qe`: writing
 `pw.x` inputs, parsing its output, stable diagnostics, supervised execution with
-a classified run report, and a collector for workflow outputs; and the Bash API
-that exposes the same helpers to Bash runners. Installing it registers the `qe`
-code with *httk₂*; nothing needs to be configured.
+a classified run report, and helpers for reading workflow outputs; and the Bash
+API that exposes the same helpers to Bash runners. Installing it registers the
+`qe` code with *httk₂*; nothing needs to be configured.
 
 ## Install
 

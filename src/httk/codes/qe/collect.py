@@ -1,37 +1,29 @@
-"""Extract workflow outputs from a collected ``pw.x`` job."""
+"""Building blocks for the collect hooks of QE workflows."""
+
+from pathlib import Path
 
 from httk.core import DataRecord
-from httk.workflow.collecting import JobRecord
 
 from .outputs import parse_pw_output
 
-__all__ = ["collect_pw"]
+__all__ = ["read_total_energy"]
 
 _TOTAL_ENERGY_DEFINITION = "https://schemas.httk.org/defs/v0.1/properties/core/total_energy"
 _TOTAL_ENERGY_NAME = "_httk_total_energy"
 
 
-def collect_pw(record: JobRecord, *, output: str = "pw.out") -> dict[str, object]:
-    """Extract the converged total energy, in eV, of one ``pw.x`` job.
+def read_total_energy(path: Path) -> DataRecord:
+    """Read the converged total energy, in eV, of one pw.x output file.
 
-    The output is read from the job's published data when it has any, else
-    from its persistent workdir.
-
-    :param record: The collected job record.
-    :param output: The ``pw.x`` output file name.
-    :return: The ``total_energy`` output role.
-    :raises ValueError: If the output is missing, holds no converged total energy,
-        or is an unconverged relaxation.
+    :param path: The pw.x output file.
+    :return: The ``total_energy`` property as a data record.
+    :raises ValueError: If the file holds no converged total energy or is an unconverged relaxation.
     """
 
-    root = record.data if record.data is not None else record.workdir
-    identity = f"{record.workspace_id}:{record.job_id}"
-    if root is None or not (root / output).is_file():
-        raise ValueError(f"{identity}: expected the pw.x output {output!r}, but the job has none")
-    result = parse_pw_output(root / output)
+    result = parse_pw_output(path)
     energy = result.total_energy_ev
     if energy is None:
-        raise ValueError(f"{identity}: {root / output} holds no converged total energy")
+        raise ValueError(f"{path} holds no converged total energy")
     if result.ionic_converged is False:
-        raise ValueError(f"{identity}: {root / output} is a relaxation that did not converge")
-    return {"total_energy": DataRecord.from_value(_TOTAL_ENERGY_DEFINITION, _TOTAL_ENERGY_NAME, energy)}
+        raise ValueError(f"{path} is a relaxation that did not converge")
+    return DataRecord.from_value(_TOTAL_ENERGY_DEFINITION, _TOTAL_ENERGY_NAME, energy)

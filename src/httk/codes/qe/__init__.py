@@ -2,9 +2,10 @@
 
 ``inputs`` writes ``pw.x`` inputs, ``outputs`` parses its text output,
 ``diagnostics`` classifies a finished calculation, ``reports`` runs it under
-supervision, and ``collect`` turns a finished job into workflow outputs. This
-package is a thin facade re-exporting their surface. The example workflow
-package ``workflows/qe-scf`` in this distribution's repository builds on it.
+supervision, and ``collect`` reads workflow outputs out of result files, for
+workflow collect hooks. This package is a thin facade re-exporting their
+surface. The example workflow package ``workflows/qe-scf`` in this
+distribution's repository builds on it.
 """
 
 from httk.core import register_citation
@@ -37,7 +38,6 @@ register_citation(
     ),
 )
 
-from .collect import collect_pw
 from .diagnostics import diagnose_pw
 from .inputs import write_pw_input
 from .outputs import RY_TO_EV, PwResult, parse_pw_output
@@ -47,7 +47,6 @@ __all__ = [
     "RY_TO_EV",
     "PwResult",
     "PwRunReport",
-    "collect_pw",
     "diagnose_pw",
     "parse_pw_output",
     "run_pw",

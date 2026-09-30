@@ -121,8 +121,18 @@ run `pw.x` and where the pseudopotential files are.
 
 ## Collecting
 
-{py:func}`~httk.codes.qe.collect_pw` is the collect hook body: it reads `pw.out`
-from the job's published data, or its persistent workdir, and returns the
-`total_energy` output as a {py:class}`httk.core.DataRecord` of the property
-`https://schemas.httk.org/defs/v0.1/properties/core/total_energy` in eV. It refuses a job whose last SCF did not converge (the parsed energy is then
-`None`) and a relaxation that stopped unconverged.
+{py:func}`~httk.codes.qe.collect.read_total_energy` reads the converged total
+energy of a `pw.out` as a {py:class}`httk.core.DataRecord` of the property
+`https://schemas.httk.org/defs/v0.1/properties/core/total_energy` in eV. It refuses a job whose last SCF did not converge (the parsed energy is
+then `None`) and a relaxation that stopped unconverged.
+
+The `qe.scf` hook shows how a workflow's `collect.py` locates the file with
+`record.result_file` and returns the role mapping:
+
+```python
+from httk.codes.qe.collect import read_total_energy
+
+
+def collect(record):
+    return {"total_energy": read_total_energy(record.result_file("pw.out"))}
+```
