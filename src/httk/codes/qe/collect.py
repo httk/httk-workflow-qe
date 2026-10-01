@@ -50,10 +50,13 @@ def read_total_energy(path: Path) -> DataRecord:
 
     :param path: The pw.x output file.
     :return: The ``total_energy`` property as a data record.
-    :raises ValueError: If the file holds no converged total energy or is an unconverged relaxation.
+    :raises ValueError: If the file is incomplete, holds no converged total energy, or is an
+        unconverged relaxation.
     """
 
     result = parse_pw_output(path)
+    if not result.job_done:
+        raise ValueError(f"{path} is not completed: missing the JOB DONE. footer")
     energy = result.total_energy_ev
     if energy is None:
         raise ValueError(f"{path} holds no converged total energy")

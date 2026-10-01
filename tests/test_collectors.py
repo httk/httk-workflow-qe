@@ -45,6 +45,21 @@ def test_an_unconverged_run_is_claimed_and_degraded(tmp_path: Path) -> None:
     assert job.outputs.get("total_energy") is None
 
 
+@pytest.mark.parametrize("compress", [False, True])
+def test_an_scf_with_energy_but_no_completion_footer_is_claimed_and_degraded(tmp_path: Path, compress: bool) -> None:
+    directory = _run(tmp_path / "a", compress=compress)
+    output = directory / ("si.out.bz2" if compress else "si.out")
+    data = bz2.decompress(output.read_bytes()) if compress else output.read_bytes()
+    data = data.replace(b"JOB DONE.", b"")
+    output.write_bytes(bz2.compress(data) if compress else data)
+    (claim,) = claims(tmp_path)
+    assert claim.kind == "claimed"
+    (job,) = collect_tree(tmp_path)
+    assert job.missing_collector is not None
+    assert "not completed" in job.missing_collector
+    assert job.outputs == {}
+
+
 def test_a_scheduler_log_is_no_candidate(tmp_path: Path) -> None:
     (tmp_path / "slurm-1.out").write_text("starting job\n" * 5, encoding="utf-8")
     assert find_outputs(tmp_path) == ()
