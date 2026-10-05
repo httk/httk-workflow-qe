@@ -35,6 +35,7 @@ def add_commands(commands: "argparse._SubParsersAction[argparse.ArgumentParser]"
     run.add_argument("--input", default="pw.in")
     run.add_argument("--output", default="pw.out")
     run.add_argument("--timeout", type=float)
+    run.add_argument("--launch", action=argparse.BooleanOptionalAction, default=None)
     run.add_argument("argv", nargs=argparse.REMAINDER)
     energy = commands.add_parser("qe-energy")
     energy.add_argument("--output", default="pw.out")
@@ -67,6 +68,7 @@ def run_command(arguments: argparse.Namespace) -> int:
             input_file=arguments.input,
             output_file=arguments.output,
             timeout=arguments.timeout,
+            launch=arguments.launch,
         )
         print(Path(arguments.directory, "qe-run-report.json"))
         return _RUN_EXIT[report.classification]

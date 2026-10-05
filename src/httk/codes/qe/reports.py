@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from httk.workflow.codes import Diagnostic, ProcessReport, ProcessSupervisor, write_json_atomic
+from httk.workflow.codes import Diagnostic, ProcessReport, ProcessSupervisor, launch_command, write_json_atomic
 
 from .diagnostics import diagnose_pw
 from .outputs import PwResult, _parse, _read
@@ -70,22 +70,29 @@ def run_pw(
     input_file: str = "pw.in",
     output_file: str = "pw.out",
     timeout: float | None = None,
+    launch: bool | None = None,
     termination_grace: float = 10.0,
     report_path: str | os.PathLike[str] = "qe-run-report.json",
 ) -> PwRunReport:
     """Run ``pw.x`` under supervision and write a classified report.
 
-    *argv* is the command that starts ``pw.x``, including any launcher such as
-    ``mpirun -np 4 pw.x``; ``-in INPUT_FILE`` is appended to it. Standard output
+    *argv* names the program (for example ``["pw.x"]``); ``-in INPUT_FILE`` is appended to it. Standard output
     goes to *output_file* and standard error beside it with the suffix ``.err``.
     A ``CRASH`` file left by an earlier run is removed first, so it cannot be
     mistaken for this run's.
+
+    The attempt's launch prefix (the parallel start, ``HTTK_WORKFLOW_LAUNCH``) is
+    prepended by default; ``launch=False`` runs *argv* as given, and a command that
+    already starts with a launcher such as ``srun`` or ``mpirun`` is refused with
+    :class:`ValueError` when a prefix applies.
 
     :param argv: The ``pw.x`` command argument vector, without the input option.
     :param directory: Run ``pw.x`` in this directory.
     :param input_file: The input file name in *directory*.
     :param output_file: Save standard output under this name in *directory*.
     :param timeout: Stop the process after this many seconds when set.
+    :param launch: Prepend the attempt's launch prefix when true, the default (``None``);
+        ``False`` runs *argv* as given.
     :param termination_grace: Allow this many seconds for graceful termination.
     :param report_path: Write the report at this directory-relative path.
     :return: The classified run report.
@@ -96,7 +103,7 @@ def run_pw(
     output = root / output_file
     # ponytail: no live monitor or remedy ladder; add them when a real campaign needs them.
     process = ProcessSupervisor().run(
-        [*argv, "-in", input_file],
+        [*launch_command(argv, launch=launch is not False), "-in", input_file],
         timeout=timeout,
         cwd=root,
         termination_grace=termination_grace,

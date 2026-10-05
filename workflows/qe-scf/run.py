@@ -11,7 +11,7 @@ as ``qe.input_invalid``.
 Settings, resolved job parameter -> ``HTTK_*`` variable -> workspace setting:
 
 * ``qe.command``: the command that starts pw.x (default ``pw.x``), e.g.
-  ``mpirun -np 4 pw.x``;
+  ``pw.x`` (the attempt's launch prefix supplies the parallel start);
 * ``qe.pseudo_dir``: the directory holding the pseudopotential files (default:
   this job's ``files/``).
 """

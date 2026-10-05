@@ -31,7 +31,7 @@ write_pw_input(
     kpoints=(4, 4, 4),
     extra={"electrons": {"conv_thr": 1e-8}},
 )
-report = run_pw(["mpirun", "-np", "4", "pw.x"], timeout=3600)
+report = run_pw(["pw.x"], timeout=3600)
 if report.ok:
     print(report.result.total_energy_ev)
 else:
@@ -83,14 +83,16 @@ source "$HTTK_WORKFLOW_BASH_API"
 source "$HTTK_WORKFLOW_QE_BASH_API"
 
 httk_qe_write_input --options options.json   # the write_pw_input keywords as JSON
-httk_qe_run --timeout 3600 -- mpirun -np 4 pw.x
+httk_qe_run --timeout 3600 -- pw.x
 energy=$(httk_qe_energy --unit ev)
 ```
+
+The command names only the program: the attempt's launch prefix (the parallel start, the `HTTK_WORKFLOW_LAUNCH` variable the workflow manager sets from the `manager.launch_template` setting, or the built-in Slurm prefix) is prepended to it, and `--no-launch` (`launch=False` in Python) runs the command as given. A command that already starts with a launcher such as `mpirun` or `srun` is refused when a prefix applies.
 
 | Function | Bridge command | Exit status |
 | --- | --- | --- |
 | `httk_qe_write_input --options FILE [--input pw.in]` | `qe-write-input` | `0` |
-| `httk_qe_run [--directory] [--input] [--output] [--timeout] -- CMD...` | `qe-run` | `0` completed, `20` crashed, `21` nonconverged, `22` process failure, `124` timeout (as `vasp-run`); prints the report path |
+| `httk_qe_run [--directory] [--input] [--output] [--timeout] [--no-launch] -- CMD...` | `qe-run` | `0` completed, `20` crashed, `21` nonconverged, `22` process failure, `124` timeout (as `vasp-run`); prints the report path |
 | `httk_qe_energy [--output pw.out] [--unit ry\|ev]` | `qe-energy` | `0` and the energy, `1` when there is none |
 | `httk_qe_converged [--output pw.out]` | `qe-converged` | `0` SCF converged and no unconverged relaxation, `1` otherwise |
 | `httk_qe_diagnose [--output pw.out] [--json]` | `qe-diagnose` | `0` clean, `20` when it printed diagnostics |
@@ -107,7 +109,7 @@ from the job's inputs). Install it with `httk plugin install` of the
 repository, or use it directly with `--workflow-dir`:
 
 ```console
-httk workspace settings set --key qe.command --value 'mpirun -np 4 pw.x' WORKSPACE
+httk workspace settings set --key qe.command --value pw.x WORKSPACE
 httk job new --workflow qe.scf --input structure=POSCAR --file Si.upf=Si.upf \
     --parameter 'pseudopotentials={"Si": "Si.upf"}'
 httk workflow run
