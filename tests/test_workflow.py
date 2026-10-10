@@ -10,6 +10,7 @@ from conftest import DATA, REPO_ROOT, SILICON_POSCAR
 def test_an_invalid_input_fails_the_job_as_qe_input_invalid(tmp_path: Path) -> None:
     pytest.importorskip("httk.atomistic")
     from httk.workflow import TaskManager, Workspace
+    from httk.workflow.collecting import job_records
     from httk.workflow.scaffold import new_job
 
     workspace = Workspace.initialize(tmp_path / "workspace")
@@ -22,11 +23,11 @@ def test_an_invalid_input_fails_the_job_as_qe_input_invalid(tmp_path: Path) -> N
         files={"Si.upf": DATA / "Si.upf"},
         # The file exists, but the mapping names no pseudopotential for Si.
         parameters={"pseudopotentials": {"Ge": "Si.upf"}},
+        install=True,
     )
     with TaskManager(workspace, heartbeat_interval=0.01) as manager:
         manager.run_until_idle(timeout=120.0)
-    marker = workspace.find_marker_by_id(job.job_id)
-    assert marker is not None and marker.kind == "failed"
-    failure = workspace.read_state(marker)["failure"]
-    assert failure["code"] == "qe.input_invalid"
-    assert "no pseudopotential given for species Si" in failure["message"]
+    [record] = job_records(workspace, states=("succeeded", "failed"))
+    assert (record.job_id, record.state) == (job.job_id, "failed")
+    assert record.failure is not None and record.failure.code == "qe.input_invalid"
+    assert "no pseudopotential given for species Si" in record.failure.message

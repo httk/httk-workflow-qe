@@ -110,7 +110,7 @@ repository, or use it directly with `--workflow-dir`:
 
 ```console
 httk workspace settings set --key qe.command --value pw.x WORKSPACE
-httk job new --workflow qe.scf --input structure=POSCAR --file Si.upf=Si.upf \
+httk job new --install --workflow qe.scf --input structure=POSCAR --file Si.upf=Si.upf \
     --parameter 'pseudopotentials={"Si": "Si.upf"}'
 httk workflow run
 httk collect --into results.sqlite
