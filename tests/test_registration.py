@@ -10,6 +10,10 @@ import httk.core  # noqa: F401  (importing httk.core runs registry discovery)
 from httk.core.register import code_support, known_codes
 
 
+def test_qe_declares_its_application_settings() -> None:
+    assert code_support("qe").settings == ("qe.command", "qe.pseudo_dir")
+
+
 def test_qe_is_a_known_code_with_its_packaged_bash_api() -> None:
     assert "qe" in known_codes()
     assert code_support("qe").bash_api_path() == Path(str(files("httk.codes.qe").joinpath("httk-qe.sh")))

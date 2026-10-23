@@ -2,5 +2,10 @@
 
 from httk.core.register import register_code, register_collector
 
-register_code("qe", bridge="httk.codes.qe._bridge", bash_api="httk.codes.qe:httk-qe.sh")
+register_code(
+    "qe",
+    bridge="httk.codes.qe._bridge",
+    bash_api="httk.codes.qe:httk-qe.sh",
+    settings=("qe.command", "qe.pseudo_dir"),
+)
 register_collector("qe.calculation.pw", package="httk.codes.qe:collectors/qe-pw")
