@@ -5,6 +5,7 @@
 name = "qe.scf"
 description = "one pw.x self-consistent-field calculation of one structure"
 requires = ["httk-workflow>=2.1.1", "httk-workflow-qe>=0.1.0", "httk-atomistic>=2.1.2"]
+settings = ["qe.command", "qe.pseudo_dir"]
 
 [workflow.runner]
 entry = "run.py"
